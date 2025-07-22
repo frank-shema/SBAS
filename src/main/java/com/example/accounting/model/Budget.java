@@ -11,6 +11,17 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 
+/**
+ * Entity representing a budget in the system.
+ * Budgets are set by users to track and limit spending in specific categories.
+ * Each budget has:
+ * - A category (e.g., "Office Supplies", "Marketing")
+ * - A maximum amount that can be spent
+ * - A time period (DAILY, WEEKLY, MONTHLY, QUARTERLY, YEARLY)
+ * 
+ * The system tracks actual spending against budgets and can generate alerts
+ * when spending approaches or exceeds budget limits.
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

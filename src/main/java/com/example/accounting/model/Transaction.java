@@ -13,6 +13,15 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+/**
+ * Entity representing a financial transaction in the system.
+ * Each transaction is associated with an account and can be either an INCOME or EXPENSE.
+ * Transactions affect the balance of the associated account:
+ * - INCOME: Increases the account balance
+ * - EXPENSE: Decreases the account balance
+ * 
+ * Transactions are categorized and dated, allowing for financial reporting and analysis.
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

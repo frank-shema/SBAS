@@ -10,6 +10,14 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 
+/**
+ * Entity representing a financial account in the system.
+ * Each account belongs to a user and has a type (ASSET or LIABILITY) and a balance.
+ * - ASSET: Represents resources owned by the business (e.g., cash, bank accounts)
+ * - LIABILITY: Represents obligations or debts owed by the business
+ * 
+ * This entity extends BaseEntity which provides common fields like id, createdAt, and updatedAt.
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

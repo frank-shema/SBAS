@@ -13,6 +13,20 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * Implementation of Spring Security's UserDetails interface.
+ * This class adapts our domain User entity to the UserDetails interface
+ * that Spring Security uses for authentication and authorization.
+ * 
+ * It contains:
+ * - Basic user information (id, username, email)
+ * - Credentials (password)
+ * - Authorities/roles for authorization
+ * - Account status flags (all returning true in this implementation)
+ * 
+ * The static build method creates a UserDetailsImpl from a User entity,
+ * converting the user's role to a Spring Security GrantedAuthority.
+ */
 @AllArgsConstructor
 @Getter
 public class UserDetailsImpl implements UserDetails {
@@ -21,10 +35,10 @@ public class UserDetailsImpl implements UserDetails {
     private Long id;
     private String username;
     private String email;
-    
+
     @JsonIgnore
     private String password;
-    
+
     private Collection<? extends GrantedAuthority> authorities;
 
     public static UserDetailsImpl build(User user) {

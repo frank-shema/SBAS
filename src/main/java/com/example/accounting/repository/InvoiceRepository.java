@@ -15,6 +15,18 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Repository interface for Invoice entity.
+ * Provides methods for CRUD operations on invoices and custom query methods.
+ * Includes methods for:
+ * - Finding invoices with various filters (account, status, client name, date range)
+ * - Finding overdue invoices
+ * - Counting invoices by status
+ * - Pagination support for listing invoices
+ * 
+ * The repository supports both single account filtering and filtering by a collection
+ * of accounts to support different access patterns.
+ */
 @Repository
 public interface InvoiceRepository extends JpaRepository<Invoice, Long> {
     Page<Invoice> findByAccount(Account account, Pageable pageable);

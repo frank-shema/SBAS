@@ -16,6 +16,18 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+/**
+ * Security configuration for the application.
+ * This class configures:
+ * - JWT-based authentication with stateless sessions
+ * - Password encoding using BCrypt
+ * - Public endpoints (/api/auth/*, Swagger UI)
+ * - Protected endpoints (everything else)
+ * - Method-level security for role-based access control
+ * 
+ * The application uses a custom JWT filter to authenticate requests based on
+ * the JWT token in the Authorization header.
+ */
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
@@ -27,10 +39,10 @@ public class SecurityConfig {
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-        
+
         authProvider.setUserDetailsService(userDetailsService);
         authProvider.setPasswordEncoder(passwordEncoder());
-        
+
         return authProvider;
     }
 
@@ -52,16 +64,12 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> 
                 auth.requestMatchers("/api/auth/**").permitAll()
                     .requestMatchers("/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
-                    .requestMatchers("/h2-console/**").permitAll()
                     .anyRequest().authenticated()
             );
-        
-        // Allow frames for H2 console
-        http.headers(headers -> headers.frameOptions(frameOptions -> frameOptions.sameOrigin()));
-        
+
         http.authenticationProvider(authenticationProvider());
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
-        
+
         return http.build();
     }
 }

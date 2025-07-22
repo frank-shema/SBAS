@@ -19,6 +19,17 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.stream.Collectors;
 
+/**
+ * Provider class for JWT token operations.
+ * This class handles:
+ * - Generating JWT tokens when users authenticate
+ * - Validating JWT tokens from incoming requests
+ * - Extracting user information and authorities from tokens
+ * - Creating Spring Security Authentication objects from tokens
+ * 
+ * The tokens include the username, user ID, and roles, and are signed with a secret key.
+ * Token expiration is configured through application properties.
+ */
 @Component
 @Slf4j
 public class JwtTokenProvider {

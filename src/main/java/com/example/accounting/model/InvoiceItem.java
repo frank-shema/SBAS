@@ -10,6 +10,14 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 
+/**
+ * Entity representing a line item in an invoice.
+ * Each item has a description, quantity, and unit price.
+ * The total amount for the item is calculated dynamically by multiplying quantity and unit price.
+ * 
+ * Unlike other entities, InvoiceItem does not extend BaseEntity as it's considered
+ * a child entity of Invoice and its lifecycle is managed through the parent.
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

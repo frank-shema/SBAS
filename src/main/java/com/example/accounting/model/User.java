@@ -11,6 +11,12 @@ import lombok.NoArgsConstructor;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * Entity representing a user in the system.
+ * Users can have one of two roles: OWNER or ACCOUNTANT.
+ * - OWNER: Has full access to all features
+ * - ACCOUNTANT: Has read-only access to reports and accounts
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

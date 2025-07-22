@@ -17,7 +17,7 @@ import org.springframework.context.annotation.Configuration;
                 description = "REST API for Small Business Accounting System (SBAS)",
                 contact = @Contact(
                         name = "SBAS Support",
-                        email = "support@sbas.example.com",
+                        email = "shemafranko0987@gmail.com",
                         url = "https://sbas.example.com"
                 ),
                 license = @License(

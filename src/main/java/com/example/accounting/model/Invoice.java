@@ -15,6 +15,17 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Entity representing an invoice in the system.
+ * Invoices are created for clients and can have multiple line items.
+ * Each invoice is associated with an account and has a status:
+ * - DRAFT: Initial state, can be modified or deleted
+ * - SENT: Invoice has been sent to the client
+ * - PAID: Invoice has been paid (creates a transaction when marked as paid)
+ * - OVERDUE: Invoice is past its due date and not paid
+ * 
+ * The total amount of the invoice is calculated dynamically from its items.
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

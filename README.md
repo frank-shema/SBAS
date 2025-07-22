@@ -28,7 +28,7 @@ A comprehensive web-based application for small businesses to manage accounts, t
 ## Technology Stack
 
 - **Backend**: Spring Boot 3.x with Maven
-- **Database**: PostgreSQL (production), H2 (development/testing)
+- **Database**: PostgreSQL
 - **ORM**: Spring Data JPA with Hibernate
 - **Security**: Spring Security with JWT
 - **Documentation**: Swagger/OpenAPI
@@ -56,12 +56,12 @@ A comprehensive web-based application for small businesses to manage accounts, t
    ./mvnw spring-boot:run
    ```
 
-   The application will start with the H2 in-memory database and will be accessible at http://localhost:8080.
+   The application will start with the PostgreSQL database and will be accessible at http://localhost:8080.
 
-3. Access the H2 console at http://localhost:8080/h2-console with the following credentials:
-   - JDBC URL: `jdbc:h2:mem:accountingdb`
-   - Username: `sa`
-   - Password: `password`
+3. Make sure you have PostgreSQL running locally with the following configuration:
+   - Database: `accountingdb`
+   - Username: `postgres`
+   - Password: `postgres`
 
 ### Production Setup
 
@@ -72,7 +72,12 @@ A comprehensive web-based application for small businesses to manage accounts, t
 
    This will start both the application and a PostgreSQL database. The application will be accessible at http://localhost:8080.
 
-2. To stop the application:
+2. Database Schema Initialization:
+   - By default, the application is configured to automatically create and update the database schema when it starts (`spring.jpa.hibernate.ddl-auto=update`).
+   - For production environments, once the schema is stable, you may want to change this setting to `validate` in `application-prod.properties` and manage schema changes manually.
+   - If you switch to `validate` mode, ensure that all required database tables exist before starting the application.
+
+3. To stop the application:
    ```bash
    docker-compose down
    ```
@@ -96,7 +101,7 @@ The project follows a layered architecture:
 
 ## Security
 
-- All endpoints except `/api/auth/*`, Swagger UI, and H2 console are secured
+- All endpoints except `/api/auth/*` and Swagger UI are secured
 - JWT tokens are required in the `Authorization` header for secured endpoints
 - Passwords are hashed using BCrypt
 - Two roles are supported: OWNER and ACCOUNTANT

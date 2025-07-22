@@ -16,6 +16,16 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Repository interface for Transaction entity.
+ * Provides methods for CRUD operations on transactions and custom query methods.
+ * Includes methods for:
+ * - Finding transactions with various filters (account, date range, category, type)
+ * - Calculating sums of transaction amounts for reporting
+ * - Pagination support for listing transactions
+ * 
+ * All methods include account-based filtering to ensure data isolation between accounts.
+ */
 @Repository
 public interface TransactionRepository extends JpaRepository<Transaction, Long> {
     Page<Transaction> findByAccount(Account account, Pageable pageable);
