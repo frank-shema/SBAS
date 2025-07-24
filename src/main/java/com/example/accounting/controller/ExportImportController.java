@@ -61,8 +61,13 @@ public class ExportImportController {
     @Operation(summary = "Export transactions", description = "Export transactions as CSV or PDF with optional filters")
     public void exportTransactions(
             @AuthenticationPrincipal UserDetailsImpl userDetails,
-            @Valid TransactionExportRequest request,
+            @Valid @ModelAttribute TransactionExportRequest request,
             HttpServletResponse response) throws IOException {
+
+        if (userDetails == null) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            return;
+        }
 
         User user = userRepository.findById(userDetails.getId())
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -97,6 +102,11 @@ public class ExportImportController {
     public ResponseEntity<?> importTransactions(
             @AuthenticationPrincipal UserDetailsImpl userDetails,
             @ModelAttribute @Valid TransactionImportRequest request) {
+
+        if (userDetails == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .build();
+        }
 
         User user = userRepository.findById(userDetails.getId())
                 .orElseThrow(() -> new RuntimeException("User not found"));

@@ -19,18 +19,17 @@ import java.util.List;
 public class InvoiceRequest {
     @NotBlank(message = "Client name is required")
     private String clientName;
-    
+
     @NotBlank(message = "Client email is required")
     @Email(message = "Client email should be valid")
     private String clientEmail;
-    
+
     @NotNull(message = "Due date is required")
-    @FutureOrPresent(message = "Due date cannot be in the past")
     private LocalDate dueDate;
-    
+
     @NotNull(message = "Account ID is required")
     private Long accountId;
-    
+
     @NotEmpty(message = "At least one item is required")
     @Valid
     private List<InvoiceItemRequest> items;

@@ -21,13 +21,15 @@ public class AccountResponse {
     private BigDecimal balance;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    
+
     public static AccountResponse fromEntity(Account account) {
         return AccountResponse.builder()
                 .id(account.getId())
                 .name(account.getName())
                 .type(account.getType())
                 .balance(account.getBalance())
+                .createdAt(account.getCreatedAt())
+                .updatedAt(account.getUpdatedAt())
                 .build();
     }
 }

@@ -42,7 +42,6 @@ public class Invoice extends BaseEntity {
     private String clientEmail;
 
     @NotNull
-    @FutureOrPresent
     private LocalDate dueDate;
 
     @ManyToOne(fetch = FetchType.LAZY)

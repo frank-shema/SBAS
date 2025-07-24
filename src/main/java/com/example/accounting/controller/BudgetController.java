@@ -53,6 +53,11 @@ public class BudgetController {
             @AuthenticationPrincipal UserDetailsImpl userDetails,
             @Valid @RequestBody BudgetRequest request) {
 
+        if (userDetails == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .build();
+        }
+
         User user = userRepository.findById(userDetails.getId())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -82,6 +87,11 @@ public class BudgetController {
             @AuthenticationPrincipal UserDetailsImpl userDetails,
             @Parameter(description = "Budget period filter") @RequestParam(required = false) BudgetPeriod period) {
 
+        if (userDetails == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .build();
+        }
+
         User user = userRepository.findById(userDetails.getId())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -106,6 +116,11 @@ public class BudgetController {
     @Operation(summary = "Get budget alerts", description = "Get alerts for budgets nearing/exceeding limits")
     public ResponseEntity<List<BudgetAlertResponse>> getBudgetAlerts(
             @AuthenticationPrincipal UserDetailsImpl userDetails) {
+
+        if (userDetails == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .build();
+        }
 
         User user = userRepository.findById(userDetails.getId())
                 .orElseThrow(() -> new RuntimeException("User not found"));

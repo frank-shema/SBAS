@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  test-db:
+    image: postgres:14-alpine
+    environment:
+      - POSTGRES_DB=accountingdb_test
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5433:5432"  # Use a different port to avoid conflicts with dev database
+    networks:
+      - test-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  test-app:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    environment:
+      - SPRING_PROFILES_ACTIVE=test
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://test-db:5432/accountingdb_test
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+    depends_on:
+      test-db:
+        condition: service_healthy
+    networks:
+      - test-network
+    volumes:
+      - ./test-results:/app/target/surefire-reports
+
+networks:
+  test-network:
+    driver: bridge
+
+volumes:
+  test-results:

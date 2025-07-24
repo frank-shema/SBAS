@@ -54,22 +54,27 @@ public class InvoiceController {
     public ResponseEntity<InvoiceResponse> createInvoice(
             @AuthenticationPrincipal UserDetailsImpl userDetails,
             @Valid @RequestBody InvoiceRequest request) {
-        
+
+        if (userDetails == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .build();
+        }
+
         User user = userRepository.findById(userDetails.getId())
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        
+
         Account account = accountRepository.findByIdAndUser(request.getAccountId(), user)
                 .orElseThrow(() -> new RuntimeException("Account not found"));
-        
+
         Invoice invoice = new Invoice();
         invoice.setClientName(request.getClientName());
         invoice.setClientEmail(request.getClientEmail());
         invoice.setDueDate(request.getDueDate());
         invoice.setAccount(account);
         invoice.setStatus(InvoiceStatus.DRAFT);
-        
+
         Invoice savedInvoice = invoiceRepository.save(invoice);
-        
+
         // Create invoice items
         request.getItems().forEach(itemRequest -> {
             InvoiceItem item = new InvoiceItem();
@@ -79,33 +84,38 @@ public class InvoiceController {
             item.setUnitPrice(itemRequest.getUnitPrice());
             savedInvoice.getItems().add(item);
         });
-        
+
         Invoice finalInvoice = invoiceRepository.save(savedInvoice);
-        
+
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(InvoiceResponse.fromEntity(finalInvoice));
     }
-    
+
     @GetMapping("/{invoiceId}")
     @Operation(summary = "Get invoice details", description = "Get details of a specific invoice by ID")
     public ResponseEntity<InvoiceResponse> getInvoice(
             @AuthenticationPrincipal UserDetailsImpl userDetails,
             @Parameter(description = "Invoice ID") @PathVariable Long invoiceId) {
-        
+
+        if (userDetails == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .build();
+        }
+
         User user = userRepository.findById(userDetails.getId())
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        
+
         // Find accounts owned by the user
         List<Account> userAccounts = accountRepository.findByUser(user);
-        
+
         // Find invoice that belongs to one of the user's accounts
         Invoice invoice = invoiceRepository.findById(invoiceId)
                 .filter(i -> userAccounts.contains(i.getAccount()))
                 .orElseThrow(() -> new RuntimeException("Invoice not found"));
-        
+
         return ResponseEntity.ok(InvoiceResponse.fromEntity(invoice));
     }
-    
+
     @GetMapping
     @Operation(summary = "List invoices", description = "List invoices with filters: status, clientName, date; support pagination")
     public ResponseEntity<Map<String, Object>> listInvoices(
@@ -116,16 +126,21 @@ public class InvoiceController {
             @Parameter(description = "End date") @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
             @Parameter(description = "Page number") @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "Page size") @RequestParam(defaultValue = "10") int size) {
-        
+
+        if (userDetails == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .build();
+        }
+
         User user = userRepository.findById(userDetails.getId())
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        
+
         // Find accounts owned by the user
         List<Account> userAccounts = accountRepository.findByUser(user);
-        
+
         Pageable pageable = PageRequest.of(page, size, Sort.by("dueDate").descending());
         Page<Invoice> invoices;
-        
+
         if (status != null && clientName != null && startDate != null && endDate != null) {
             // Filter by status, client name, and date range
             invoices = invoiceRepository.findByAccountInAndStatusAndClientNameContainingIgnoreCaseAndDueDateBetween(
@@ -157,21 +172,21 @@ public class InvoiceController {
             // No filters
             invoices = invoiceRepository.findByAccountIn(userAccounts, pageable);
         }
-        
+
         List<InvoiceResponse> invoiceResponses = invoices.getContent().stream()
                 .map(InvoiceResponse::fromEntity)
                 .collect(Collectors.toList());
-        
+
         Map<String, Object> response = Map.of(
                 "invoices", invoiceResponses,
                 "currentPage", invoices.getNumber(),
                 "totalItems", invoices.getTotalElements(),
                 "totalPages", invoices.getTotalPages()
         );
-        
+
         return ResponseEntity.ok(response);
     }
-    
+
     @PutMapping("/{invoiceId}/status")
     @Transactional
     @Operation(summary = "Update invoice status", description = "Update invoice status (creates transaction if PAID)")
@@ -179,34 +194,39 @@ public class InvoiceController {
             @AuthenticationPrincipal UserDetailsImpl userDetails,
             @Parameter(description = "Invoice ID") @PathVariable Long invoiceId,
             @Valid @RequestBody Map<String, String> request) {
-        
+
         String statusStr = request.get("status");
         if (statusStr == null) {
             return ResponseEntity.badRequest().build();
         }
-        
+
         InvoiceStatus status;
         try {
             status = InvoiceStatus.valueOf(statusStr.toUpperCase());
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().build();
         }
-        
+
+        if (userDetails == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .build();
+        }
+
         User user = userRepository.findById(userDetails.getId())
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        
+
         // Find accounts owned by the user
         List<Account> userAccounts = accountRepository.findByUser(user);
-        
+
         // Find invoice that belongs to one of the user's accounts
         Invoice invoice = invoiceRepository.findById(invoiceId)
                 .filter(i -> userAccounts.contains(i.getAccount()))
                 .orElseThrow(() -> new RuntimeException("Invoice not found"));
-        
+
         // If status is changing to PAID, create a transaction
         if (status == InvoiceStatus.PAID && invoice.getStatus() != InvoiceStatus.PAID) {
             Account account = invoice.getAccount();
-            
+
             Transaction transaction = new Transaction();
             transaction.setAccount(account);
             transaction.setAmount(invoice.getTotal());
@@ -214,45 +234,50 @@ public class InvoiceController {
             transaction.setCategory("Invoice Payment");
             transaction.setDate(LocalDateTime.now());
             transaction.setDescription("Payment for invoice #" + invoice.getId() + " from " + invoice.getClientName());
-            
+
             // Update account balance
             account.setBalance(account.getBalance().add(invoice.getTotal()));
-            
+
             accountRepository.save(account);
             transactionRepository.save(transaction);
         }
-        
+
         invoice.setStatus(status);
         Invoice updatedInvoice = invoiceRepository.save(invoice);
-        
+
         return ResponseEntity.ok(InvoiceResponse.fromEntity(updatedInvoice));
     }
-    
+
     @DeleteMapping("/{invoiceId}")
     @Operation(summary = "Delete invoice", description = "Delete draft invoice")
     public ResponseEntity<?> deleteInvoice(
             @AuthenticationPrincipal UserDetailsImpl userDetails,
             @Parameter(description = "Invoice ID") @PathVariable Long invoiceId) {
-        
+
+        if (userDetails == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .build();
+        }
+
         User user = userRepository.findById(userDetails.getId())
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        
+
         // Find accounts owned by the user
         List<Account> userAccounts = accountRepository.findByUser(user);
-        
+
         // Find invoice that belongs to one of the user's accounts
         Invoice invoice = invoiceRepository.findById(invoiceId)
                 .filter(i -> userAccounts.contains(i.getAccount()))
                 .orElseThrow(() -> new RuntimeException("Invoice not found"));
-        
+
         // Only draft invoices can be deleted
         if (invoice.getStatus() != InvoiceStatus.DRAFT) {
             return ResponseEntity.badRequest()
                     .body(Map.of("message", "Only draft invoices can be deleted"));
         }
-        
+
         invoiceRepository.delete(invoice);
-        
+
         return ResponseEntity.noContent().build();
     }
 }

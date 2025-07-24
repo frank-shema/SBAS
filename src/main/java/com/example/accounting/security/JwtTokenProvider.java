@@ -89,8 +89,15 @@ public class JwtTokenProvider {
                         .map(SimpleGrantedAuthority::new)
                         .collect(Collectors.toList());
 
-        UserDetails principal = new org.springframework.security.core.userdetails.User(
-                claims.getSubject(), "", authorities);
+        // Create UserDetailsImpl instead of standard User
+        Long userId = claims.get("id", Long.class);
+        UserDetailsImpl principal = new UserDetailsImpl(
+                userId,
+                claims.getSubject(),
+                null, // email is not stored in the token
+                "",   // password is not needed
+                authorities
+        );
 
         return new UsernamePasswordAuthenticationToken(principal, token, authorities);
     }

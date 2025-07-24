@@ -13,9 +13,10 @@ import java.util.Set;
 
 /**
  * Entity representing a user in the system.
- * Users can have one of two roles: OWNER or ACCOUNTANT.
+ * Users can have one of three roles: OWNER, ACCOUNTANT, or EMPLOYEE.
  * - OWNER: Has full access to all features
- * - ACCOUNTANT: Has read-only access to reports and accounts
+ * - ACCOUNTANT: Has read-only access to reports and accounts, with limited write capabilities
+ * - EMPLOYEE: Has limited access to basic features needed for day-to-day operations
  */
 @Data
 @NoArgsConstructor
@@ -49,6 +50,7 @@ public class User {
 
     public enum Role {
         OWNER,
-        ACCOUNTANT
+        ACCOUNTANT,
+        EMPLOYEE
     }
 }

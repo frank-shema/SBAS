@@ -38,112 +38,137 @@ public class AccountController {
     public ResponseEntity<AccountResponse> createAccount(
             @AuthenticationPrincipal UserDetailsImpl userDetails,
             @Valid @RequestBody AccountRequest accountRequest) {
-        
+
+        if (userDetails == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .build();
+        }
+
         User user = userRepository.findById(userDetails.getId())
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        
+
         // Check if account with same name already exists for this user
         if (accountRepository.existsByNameAndUser(accountRequest.getName(), user)) {
             return ResponseEntity.badRequest().build();
         }
-        
+
         Account account = new Account();
         account.setUser(user);
         account.setName(accountRequest.getName());
         account.setType(accountRequest.getType());
         account.setBalance(accountRequest.getInitialBalance());
-        
+
         Account savedAccount = accountRepository.save(account);
-        
+
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(AccountResponse.fromEntity(savedAccount));
     }
-    
+
     @GetMapping("/{accountId}")
     @Operation(summary = "Get account details", description = "Get details of a specific account by ID")
     public ResponseEntity<AccountResponse> getAccount(
             @AuthenticationPrincipal UserDetailsImpl userDetails,
             @Parameter(description = "Account ID") @PathVariable Long accountId) {
-        
+
+        if (userDetails == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .build();
+        }
+
         User user = userRepository.findById(userDetails.getId())
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        
+
         Account account = accountRepository.findByIdAndUser(accountId, user)
                 .orElseThrow(() -> new RuntimeException("Account not found"));
-        
+
         return ResponseEntity.ok(AccountResponse.fromEntity(account));
     }
-    
+
     @GetMapping
     @Operation(summary = "List accounts", description = "List all accounts or filter by type")
     public ResponseEntity<List<AccountResponse>> listAccounts(
             @AuthenticationPrincipal UserDetailsImpl userDetails,
             @Parameter(description = "Account type filter") @RequestParam(required = false) AccountType type) {
-        
+
+        if (userDetails == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .build();
+        }
+
         User user = userRepository.findById(userDetails.getId())
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        
+
         List<Account> accounts;
         if (type != null) {
             accounts = accountRepository.findByUserAndType(user, type);
         } else {
             accounts = accountRepository.findByUser(user);
         }
-        
+
         List<AccountResponse> accountResponses = accounts.stream()
                 .map(AccountResponse::fromEntity)
                 .collect(Collectors.toList());
-        
+
         return ResponseEntity.ok(accountResponses);
     }
-    
+
     @PutMapping("/{accountId}")
     @Operation(summary = "Update account name", description = "Update the name of an existing account")
     public ResponseEntity<AccountResponse> updateAccount(
             @AuthenticationPrincipal UserDetailsImpl userDetails,
             @Parameter(description = "Account ID") @PathVariable Long accountId,
             @Valid @RequestBody Map<String, String> request) {
-        
+
         String name = request.get("name");
         if (name == null || name.trim().isEmpty()) {
             return ResponseEntity.badRequest().build();
         }
-        
+
+        if (userDetails == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .build();
+        }
+
         User user = userRepository.findById(userDetails.getId())
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        
+
         Account account = accountRepository.findByIdAndUser(accountId, user)
                 .orElseThrow(() -> new RuntimeException("Account not found"));
-        
+
         // Check if another account with the same name exists
         if (!account.getName().equals(name) && 
                 accountRepository.existsByNameAndUser(name, user)) {
             return ResponseEntity.badRequest().build();
         }
-        
+
         account.setName(name);
         Account updatedAccount = accountRepository.save(account);
-        
+
         return ResponseEntity.ok(AccountResponse.fromEntity(updatedAccount));
     }
-    
+
     @DeleteMapping("/{accountId}")
     @Operation(summary = "Delete account", description = "Delete an account if it has no transactions")
     @PreAuthorize("hasRole('OWNER')")
     public ResponseEntity<?> deleteAccount(
             @AuthenticationPrincipal UserDetailsImpl userDetails,
             @Parameter(description = "Account ID") @PathVariable Long accountId) {
-        
+
+        if (userDetails == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .build();
+        }
+
         User user = userRepository.findById(userDetails.getId())
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        
+
         Account account = accountRepository.findByIdAndUser(accountId, user)
                 .orElseThrow(() -> new RuntimeException("Account not found"));
-        
+
         // In a real implementation, check if account has transactions before deleting
         // For now, we'll just delete it
         accountRepository.delete(account);
-        
+
         return ResponseEntity.noContent().build();
     }
 }
